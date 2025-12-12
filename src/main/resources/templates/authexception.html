@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<title>Oops</title>
+<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+<body>
+	<div class="container-fluid">
+		<div class="row min-vh-100">
+			<nav th:replace="~{block/sidebar :: sidebar}"></nav>
+			<main class="col-12 col-md-9 col-lg-10 p-4">
+				<div class="d-flex justify-content-center align-items-center"
+					style="min-height: 70vh;">
+					<div class="text-center">
+						<div class="mb-4">
+							<span
+								class="badge bg-warning text-dark fs-4 px-4 py-3 rounded-pill">
+								🚫 Access Denied </span>
+						</div>
+						<h1 class="display-6 fw-bold mb-3">You don’t have permission
+						</h1>
+						<p class="text-muted fs-5 mb-4">Unfortunately, your account is
+							not authorized to access this page.</p>
+						<a href="/" class="btn btn-outline-dark btn-lg"> ← Back
+							to Home </a>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

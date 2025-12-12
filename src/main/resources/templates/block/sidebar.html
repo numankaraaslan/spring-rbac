@@ -1,0 +1,33 @@
+<nav id="sidebarMenu"
+	class="col-12 col-md-3 col-lg-2 bg-dark text-white d-flex flex-column p-0"
+	th:fragment="sidebar">
+	<div class="position-sticky d-flex flex-column">
+		<div class="bg-dark pt-3 pb-3 px-3 border-bottom border-secondary">
+			<h4 class="text-white text-center mb-2">Wellcome</h4>
+			<h6 class="text-white text-center mb-0"
+				sec:authorize="isAuthenticated()"
+				th:text="${#authentication.getName()}"></h6>
+		</div>
+		<div class="nav flex-column p-3 flex-grow-1 d-grid gap-2">
+			<a class="btn btn-outline-light text-start" href="/admin"
+				th:if="${canSee_AdminHome}"> Admin </a> <a
+				class="btn btn-outline-light text-start" href="/admin/roles"
+				th:if="${canSee_Roles}"> Roles </a> <a
+				class="btn btn-outline-light text-start" href="/admin/role-pages"
+				th:if="${canSee_RolePages}"> Role - Pages </a> <a
+				class="btn btn-outline-light text-start" href="/admin/role-pageobjects"
+				th:if="${canSee_RolePageObjects}"> Role - Page Objects </a>
+				<a class="btn btn-outline-light text-start" href="/materials"
+				th:if="${canSee_MaterialsPage}"> Materials </a>
+				<a class="btn btn-outline-light text-start" href="/employees"
+				th:if="${canSee_EmployeesPage}"> Employees </a>
+		</div>
+
+		<div class="mt-auto pt-3 pb-3 px-3 border-top border-secondary">
+			<a class="btn btn-sm btn-outline-light w-100" th:href="@{/logout}"
+				sec:authorize="isAuthenticated()"> Çıkış </a> <a
+				class="btn btn-sm btn-outline-light w-100 mt-2" th:href="@{/login}"
+				sec:authorize="!isAuthenticated()"> Giriş </a>
+		</div>
+	</div>
+</nav>
