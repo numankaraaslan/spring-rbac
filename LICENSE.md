@@ -33,4 +33,4 @@ The author is not liable for any damages arising from its use.
 
 ## Contact
 For permissions, licensing, or commercial inquiries:  
-**[your-email@example.com]**
+**[numan4634@hotmail.com]**
