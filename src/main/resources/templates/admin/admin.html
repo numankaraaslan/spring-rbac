@@ -10,7 +10,6 @@
 		<div class="row min-vh-100">
 			<nav th:replace="~{block/sidebar :: sidebar}"></nav>
 			<main class="col-12 col-md-9 col-lg-10 p-4">
-
 				<h3 class="mb-4">Users</h3>
 				<div class="card mb-4">
 					<div class="card-header">Assign Roles to User</div>
@@ -23,7 +22,7 @@
 								<label class="form-label">User</label> <select
 									class="form-select" name="username" required>
 									<option value="" selected disabled>Select user...</option>
-									<option th:each="u : ${userList}" th:value="${u.username}"
+									<option th:each="u : ${userList}" th:value="${u.id}"
 										th:text="${u.username}"></option>
 								</select>
 							</div>

@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,44 +29,9 @@ public class UserService implements UserDetailsService
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
+	public UserDetails loadUserByUsername(String username)
 	{
-		User user = userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-		return user;
-	}
-
-	public User createUser(String username, String rawPassword, Set<String> roleNames)
-	{
-		List<Role> roles = roleService.getRolesByName(roleNames);
-		User user = new User();
-		user.setUsername(username);
-		user.setPassword(passwordEncoder.encode(rawPassword));
-		user.setRoles(new HashSet<>(roles));
-
-		return userRepo.save(user);
-	}
-
-	public void addRole(String username, String roleName)
-	{
-		User user = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found: " + username));
-		Role role = roleService.getRole(roleName);
-		user.getRoles().add(role);
-		userRepo.save(user);
-	}
-
-	public void removeRole(String username, String roleName)
-	{
-		User user = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found: " + username));
-		user.getRoles().removeIf(r -> r.getName().equals(roleName));
-		userRepo.save(user);
-	}
-
-	public void setRoles(String username, Set<String> newRoleNames)
-	{
-		User user = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found: " + username));
-		List<Role> roles = roleService.getRolesByName(newRoleNames);
-		user.setRoles(new HashSet<>(roles));
-		userRepo.save(user);
+		return userRepo.findByUsername(username).get();
 	}
 
 	public void deleteAllInBatch()
@@ -86,31 +50,15 @@ public class UserService implements UserDetailsService
 		return userRepo.findAll();
 	}
 
-	public void assignRolesToUser(String username, List<UUID> roleIds)
+	public void assignRolesToUser(UUID userId, List<UUID> roleIds)
 	{
-		User user = userRepo.findByUsername(username).orElse(null);
-		if (user == null)
-		{
-			return;
-		}
+		User user = userRepo.findById(userId).get();
 		user.getRoles().clear();
-		if (roleIds != null)
+		Set<UUID> uniqueIds = new HashSet<UUID>(roleIds);
+		for (UUID id : uniqueIds)
 		{
-			Set<UUID> uniqueIds = new HashSet<UUID>(roleIds);
-
-			for (UUID id : uniqueIds)
-			{
-				if (id == null)
-				{
-					continue;
-				}
-
-				Role role = roleService.findById(id).orElse(null);
-				if (role != null)
-				{
-					user.getRoles().add(role);
-				}
-			}
+			Role role = roleService.findById(id).get();
+			user.getRoles().add(role);
 		}
 		userRepo.save(user);
 	}

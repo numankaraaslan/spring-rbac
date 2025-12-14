@@ -25,13 +25,13 @@ public class SecurityConfig
 {
 	private final CustomAuthorizationManager customAuthManager;
 	private final SessionRegistry sessionRegistry;
-	private final RedirectSuccessHandler dbRedirectSuccessHandler;
+	private final AfterLoginHandler afterLoginHandler;
 
-	public SecurityConfig(CustomAuthorizationManager dbAuthManager, SessionRegistry sessionRegistry, RedirectSuccessHandler dbRedirectSuccessHandler)
+	public SecurityConfig(CustomAuthorizationManager customAuthManager, SessionRegistry sessionRegistry, AfterLoginHandler afterLoginHandler)
 	{
-		this.customAuthManager = dbAuthManager;
+		this.customAuthManager = customAuthManager;
 		this.sessionRegistry = sessionRegistry;
-		this.dbRedirectSuccessHandler = dbRedirectSuccessHandler;
+		this.afterLoginHandler = afterLoginHandler;
 	}
 
 	@Bean
@@ -42,11 +42,7 @@ public class SecurityConfig
 		http.headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; " + "script-src 'self'; " + "style-src 'self' 'unsafe-inline'; " + "img-src 'self' data:; " + "font-src 'self'; " + "connect-src 'self'; " + "frame-ancestors 'none'; " + "object-src 'none'")).xssProtection(_ -> Customizer.withDefaults()).frameOptions(frame -> frame.deny()).referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)));
 		http.authorizeHttpRequests(registry -> registry.requestMatchers("/", "/wellcome", "/authexception", "/login", "/logout", "/error", "/css/**", "/js/**").permitAll());
 		http.authorizeHttpRequests(cus -> cus.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll());
-		// -------------------------------------------------------------
-		// Dynamic URL Authorization
-		// Everything other than /login and static resources
-		// must go through your DB-driven AuthorizationManager
-		// -------------------------------------------------------------
+		// for all links and endpoints stuff
 		http.authorizeHttpRequests(reg -> reg.anyRequest().access(this.customAuthManager));
 		http.exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandler()
 		{
@@ -56,7 +52,7 @@ public class SecurityConfig
 				response.sendRedirect(request.getContextPath() + "/authexception");
 			}
 		}));
-		http.formLogin(login -> login.successHandler(dbRedirectSuccessHandler));
+		http.formLogin(login -> login.successHandler(afterLoginHandler));
 		return http.build();
 	}
 }

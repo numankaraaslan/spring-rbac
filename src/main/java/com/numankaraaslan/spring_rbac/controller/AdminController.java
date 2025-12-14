@@ -15,8 +15,8 @@ import com.numankaraaslan.spring_rbac.model.Role;
 import com.numankaraaslan.spring_rbac.model.User;
 import com.numankaraaslan.spring_rbac.repo.EndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.PageObjectRepository;
-import com.numankaraaslan.spring_rbac.service.PermissionService;
 import com.numankaraaslan.spring_rbac.service.RoleService;
+import com.numankaraaslan.spring_rbac.service.SessionService;
 import com.numankaraaslan.spring_rbac.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,15 +28,15 @@ public class AdminController
 	private final EndpointRepository endpointRepo;
 	private final PageObjectRepository pageObjectRepo;
 	private final UserService userService;
-	private final PermissionService permissionService;
+	private final SessionService sessionService;
 
-	public AdminController(RoleService roleService, UserService userService, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, PermissionService permissionService)
+	public AdminController(RoleService roleService, UserService userService, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, SessionService sessionService)
 	{
 		this.roleService = roleService;
 		this.endpointRepo = endpointRepo;
 		this.pageObjectRepo = pageObjectRepo;
 		this.userService = userService;
-		this.permissionService = permissionService;
+		this.sessionService = sessionService;
 	}
 
 	@GetMapping(path = "/admin")
@@ -51,10 +51,9 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/assign-roles-to-user")
-	public ModelAndView assignRolesToUser(@RequestParam("username") String username, @RequestParam(value = "roleIds", required = false) List<UUID> roleIds)
+	public ModelAndView assignRolesToUser(@RequestParam("username") UUID userId, @RequestParam(value = "roleIds") List<UUID> roleIds)
 	{
-		String u = username == null ? "" : username.trim();
-		userService.assignRolesToUser(u, roleIds);
+		userService.assignRolesToUser(userId, roleIds);
 		return new ModelAndView("redirect:/admin");
 	}
 
@@ -74,18 +73,15 @@ public class AdminController
 		Role r = new Role();
 		r.setName(roleName);
 		roleService.save(r);
-		permissionService.invalidateAll(request);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/roles");
 	}
 
 	@PostMapping("/admin/roles/delete")
 	public ModelAndView deleteRole(HttpServletRequest request, @RequestParam("id") UUID id)
 	{
-		if (id != null)
-		{
-			roleService.deleteById(id);
-			permissionService.invalidateAll(request);
-		}
+		roleService.deleteById(id);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/roles");
 	}
 
@@ -100,17 +96,17 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/role-pages/create")
-	public ModelAndView createRolePage(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "endpointNames", required = false) List<String> endpointNames)
+	public ModelAndView createRolePage(HttpServletRequest request, @RequestParam("roleID") UUID roleID, @RequestParam(value = "endpointIds") List<UUID> endpointIds)
 	{
-		String rn = roleName == null ? "" : roleName.trim();
-		Role role = roleService.findByName(rn).orElse(null);
-		for (int i = 0; i < endpointNames.size(); i++)
+		Role role = roleService.findById(roleID).get();
+		role.getEndpoints().clear();
+		for (int i = 0; i < endpointIds.size(); i++)
 		{
-			Endpoint endpointEntity = endpointRepo.findByName(endpointNames.get(i)).get();
+			Endpoint endpointEntity = endpointRepo.findById(endpointIds.get(i)).get();
 			role.getEndpoints().add(endpointEntity);
 			roleService.save(role);
 		}
-		permissionService.invalidateAll(request);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
 
@@ -120,7 +116,7 @@ public class AdminController
 		Role role = roleService.findById(roleId).get();
 		role.getEndpoints().removeIf(item -> item.getId().equals(endpointId));
 		roleService.save(role);
-		permissionService.invalidateAll(request);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
 
@@ -135,17 +131,17 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/role-pageobjects/create")
-	public ModelAndView createRolePageObject(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "pageObjectNames", required = false) List<String> pageObjectNames)
+	public ModelAndView createRolePageObject(HttpServletRequest request, @RequestParam("roleID") UUID roleID, @RequestParam(value = "pageObjectIds") List<UUID> pageObjectIds)
 	{
-		String rn = roleName == null ? "" : roleName.trim();
-		Role role = roleService.findByName(rn).orElse(null);
-		for (int i = 0; i < pageObjectNames.size(); i++)
+		Role role = roleService.findById(roleID).get();
+		role.getPageObjects().clear();
+		for (int i = 0; i < pageObjectIds.size(); i++)
 		{
-			PageObject pageObj = pageObjectRepo.findByName(pageObjectNames.get(i)).get();
+			PageObject pageObj = pageObjectRepo.findById(pageObjectIds.get(i)).get();
 			role.getPageObjects().add(pageObj);
 			roleService.save(role);
 		}
-		permissionService.invalidateAll(request);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
 
@@ -155,7 +151,7 @@ public class AdminController
 		Role role = roleService.findById(roleId).get();
 		role.getPageObjects().removeIf(item -> item.getId().equals(pageobjectId));
 		roleService.save(role);
-		permissionService.invalidateAll(request);
+		sessionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
 }

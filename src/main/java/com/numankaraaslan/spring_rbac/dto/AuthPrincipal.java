@@ -1,64 +1,37 @@
 package com.numankaraaslan.spring_rbac.dto;
 
+import java.security.Principal;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.util.AntPathMatcher;
 
-public class AuthPrincipal
+import com.numankaraaslan.spring_rbac.model.Endpoint;
+import com.numankaraaslan.spring_rbac.model.PageObject;
+import com.numankaraaslan.spring_rbac.model.Role;
+
+// this is in session, so no need to go to db everytime
+public class AuthPrincipal implements Principal
 {
-	private final UUID userId;
 	private final String username;
+	private final Set<Role> roles;
 
-	// what they are
-	private final Set<String> roleNames;
-
-	// what they can do
-	private final Set<String> allowedEndpoints;
-	private final Set<String> allowedPageObjects;
-
-	public AuthPrincipal(UUID userId, String username, Set<String> roleNames, Set<String> allowedEndpoints, Set<String> allowedPageObjects)
+	public AuthPrincipal(String username, Set<Role> roles)
 	{
-		this.userId = userId;
 		this.username = username;
-		this.roleNames = Set.copyOf(roleNames);
-		this.allowedEndpoints = Set.copyOf(allowedEndpoints);
-		this.allowedPageObjects = Set.copyOf(allowedPageObjects);
-	}
-
-	public UUID getUserId()
-	{
-		return userId;
-	}
-
-	public String getUsername()
-	{
-		return username;
-	}
-
-	public Set<String> getRoleNames()
-	{
-		return roleNames;
-	}
-
-	public Set<String> getAllowedEndpoints()
-	{
-		return allowedEndpoints;
-	}
-
-	public Set<String> getAllowedPageObjects()
-	{
-		return allowedPageObjects;
+		this.roles = roles;
 	}
 
 	public boolean canAccessEndpoint(String requestUri)
 	{
 		String path = normalize(requestUri);
-		for (String pattern : allowedEndpoints)
+		for (Role role : roles)
 		{
-			if (new AntPathMatcher().match(normalize(pattern), path))
+			for (Endpoint endpoint : role.getEndpoints())
 			{
-				return true;
+				if (new AntPathMatcher().match(normalize(endpoint.getPath()), path))
+				{
+					return true;
+				}
 			}
 		}
 		return false;
@@ -67,22 +40,37 @@ public class AuthPrincipal
 	private String normalize(String s)
 	{
 		if (s == null)
+		{
 			return "";
+		}
 		int q = s.indexOf('?');
 		String out = (q >= 0) ? s.substring(0, q) : s;
 		if (out.length() > 1 && out.endsWith("/"))
+		{
 			out = out.substring(0, out.length() - 1);
+		}
 		return out;
 	}
 
 	public boolean canAccessPageObject(String key)
 	{
-		return key != null && allowedPageObjects.contains(key);
+		for (Role role : roles)
+		{
+			for (PageObject pageObject : role.getPageObjects())
+			{
+				if (pageObject.getName().equals(key))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
-	public String toString()
+	public String getName()
 	{
+		// so that you can use ${#authentication.principal.getName()} or ${#authentication.getName()} in thymeleaf
 		return username;
 	}
 }

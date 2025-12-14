@@ -62,8 +62,8 @@ public class InitialDataLoader implements CommandLineRunner
 		Endpoint epRolePageObjectsDelete = crateEndpoint("/admin/role-pageobjects/delete", "Delete role-pageobject mapping (POST)");
 		// ---------------------
 		Role adminRole = createRole("ADMIN");
-		//		Role workerRole = createRole("WORKER");
-		//		Role employerRole = createRole("EMPLOYER");
+		Role workerRole = createRole("WORKER");
+		Role employerRole = createRole("EMPLOYER");
 		createUser("admin", "1234", adminRole);
 		createUser("user1", "1234");
 		createUser("user2", "1234");
@@ -81,30 +81,27 @@ public class InitialDataLoader implements CommandLineRunner
 		adminRole.getEndpoints().add(epRolePageObjectsCreate);
 		adminRole.getEndpoints().add(epRolePageObjectsDelete);
 		roleService.save(adminRole);
-		// -------------------------
-		//		grant(workerRole, epMat);
-		//		grant(workerRole, epMatCreate);
-		//		grant(workerRole, epMatDelete);
-		//		grant(workerRole, epMatUpdate);
-		//		grant(workerRole, pomCreate);
-		//		grant(workerRole, pomDelete);
-		//		grant(workerRole, pomUpdate);
-		//		grant(employerRole, epEmp);
-		//		grant(employerRole, epEmpCreate);
-		//		grant(employerRole, epEmpDelete);
-		//		grant(employerRole, epEmpUpdate);
-		//		grant(employerRole, poeCreate);
-		//		grant(employerRole, poeDelete);
-		//		grant(employerRole, poeUpdate);
+		// ---------------------------------
+		workerRole.getEndpoints().add(epMat);
+		workerRole.getEndpoints().add(epMatCreate);
+		workerRole.getEndpoints().add(epMatDelete);
+		workerRole.getEndpoints().add(epMatUpdate);
+		workerRole.getPageObjects().add(pomCreate);
+		workerRole.getPageObjects().add(pomDelete);
+		workerRole.getPageObjects().add(pomUpdate);
+		roleService.save(workerRole);
+		employerRole.getEndpoints().add(epEmp);
+		employerRole.getEndpoints().add(epEmpCreate);
+		employerRole.getEndpoints().add(epEmpDelete);
+		employerRole.getEndpoints().add(epEmpUpdate);
+		employerRole.getPageObjects().add(poeCreate);
+		employerRole.getPageObjects().add(poeDelete);
+		employerRole.getPageObjects().add(poeUpdate);
+		roleService.save(employerRole);
 	}
 
 	private PageObject createPageObject(String name, String description)
 	{
-		PageObject existing = pageObjectRepository.findByName(name).orElse(null);
-		if (existing != null)
-		{
-			return existing;
-		}
 		PageObject po = new PageObject();
 		po.setName(name);
 		po.setDescription(description);
@@ -113,26 +110,13 @@ public class InitialDataLoader implements CommandLineRunner
 
 	private User createUser(String username, String password, Role... roles)
 	{
-		try
-		{
-			return (User) userService.loadUserByUsername(username);
-		}
-		catch (Exception ignored)
-		{
-		}
 		User u = new User();
 		u.setUsername(username);
 		u.setPassword(password);
-		if (roles != null)
+		for (int i = 0; i < roles.length; i++)
 		{
-			for (int i = 0; i < roles.length; i++)
-			{
-				Role r = roles[i];
-				if (r != null)
-				{
-					u.getRoles().add(r);
-				}
-			}
+			Role r = roles[i];
+			u.getRoles().add(r);
 		}
 		userService.save(u);
 		return u;
@@ -140,27 +124,18 @@ public class InitialDataLoader implements CommandLineRunner
 
 	private Role createRole(String roleName)
 	{
-		Role role = roleService.findByName(roleName).orElse(null);
-		if (role != null)
-		{
-			return role;
-		}
 		Role r = new Role();
 		r.setName(roleName);
 		roleService.save(r);
 		return r;
 	}
 
-	private Endpoint crateEndpoint(String name, String description)
+	private Endpoint crateEndpoint(String path, String description)
 	{
-		Endpoint ep = endpointRepository.findByName(name).orElse(null);
-		if (ep == null)
-		{
-			ep = new Endpoint();
-			ep.setName(name);
-			ep.setDescription(description);
-			ep = endpointRepository.save(ep);
-		}
+		Endpoint ep = new Endpoint();
+		ep.setPath(path);
+		ep.setDescription(description);
+		ep = endpointRepository.save(ep);
 		return ep;
 	}
 }

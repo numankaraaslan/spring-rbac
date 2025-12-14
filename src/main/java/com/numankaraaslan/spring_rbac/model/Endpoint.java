@@ -17,8 +17,8 @@ public class Endpoint
 	@UuidGenerator
 	private UUID id;
 
-	@Column(name = "name", nullable = false, unique = true)
-	private String name;
+	@Column(name = "path", nullable = false, unique = true)
+	private String path;
 
 	@Column(name = "description")
 	private String description;
@@ -37,14 +37,14 @@ public class Endpoint
 		this.id = id;
 	}
 
-	public String getName()
+	public String getPath()
 	{
-		return name;
+		return path;
 	}
 
-	public void setName(String name)
+	public void setPath(String path)
 	{
-		this.name = name;
+		this.path = path;
 	}
 
 	public String getDescription()
@@ -60,6 +60,6 @@ public class Endpoint
 	@Override
 	public String toString()
 	{
-		return name;
+		return path;
 	}
 }

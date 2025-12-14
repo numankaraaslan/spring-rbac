@@ -21,19 +21,19 @@
 							<input type="hidden" th:name="${_csrf.parameterName}"
 								th:value="${_csrf.token}" />
 							<div class="col-12 col-md-4">
-								<label class="form-label">Role</label> <select name="roleName"
+								<label class="form-label">Role</label> <select name="roleID"
 									class="form-select" required>
 									<option value="" selected disabled>Select role</option>
-									<option th:each="r : ${roleList}" th:value="${r.name}"
+									<option th:each="r : ${roleList}" th:value="${r.id}"
 										th:text="${r.name}"></option>
 								</select>
 							</div>
 							<div class="col-12 col-md-6">
 								<label class="form-label"> Endpoints (hold Ctrl / Cmd
-									for multiple) </label> <select name="endpointNames" class="form-select"
+									for multiple) </label> <select name="endpointIds" class="form-select"
 									multiple size="8">
-									<option th:each="e : ${endpoints}" th:value="${e.name}"
-										th:text="${e.name + ' — ' + e.description}"></option>
+									<option th:each="e : ${endpoints}" th:value="${e.id}"
+										th:text="${e.path + ' — ' + e.description}"></option>
 								</select>
 							</div>
 							<div class="col-12 col-md-2 d-flex align-items-end">
@@ -59,7 +59,7 @@
 								<th:block th:each="role : ${roleList}">
 									<tr th:each="ep : ${role.endpoints}">
 										<td th:text="${role.name}"></td>
-										<td th:text="${ep.name}"></td>
+										<td th:text="${ep.path}"></td>
 										<td th:text="${ep.description}"></td>
 										<td>
 											<form action="/admin/role-pages/delete" method="post">
