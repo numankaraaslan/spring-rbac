@@ -6,13 +6,9 @@ import org.springframework.stereotype.Component;
 import com.numankaraaslan.spring_rbac.model.Endpoint;
 import com.numankaraaslan.spring_rbac.model.PageObject;
 import com.numankaraaslan.spring_rbac.model.Role;
-import com.numankaraaslan.spring_rbac.model.RoleEndpoint;
-import com.numankaraaslan.spring_rbac.model.RolePageObject;
 import com.numankaraaslan.spring_rbac.model.User;
 import com.numankaraaslan.spring_rbac.repo.EndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.PageObjectRepository;
-import com.numankaraaslan.spring_rbac.repo.RoleEndpointRepository;
-import com.numankaraaslan.spring_rbac.repo.RolePageObjectRepository;
 import com.numankaraaslan.spring_rbac.service.RoleService;
 import com.numankaraaslan.spring_rbac.service.UserService;
 
@@ -21,17 +17,13 @@ public class InitialDataLoader implements CommandLineRunner
 {
 	private final UserService userService;
 	private final RoleService roleService;
-	private final RoleEndpointRepository roleEndpointRepository;
-	private final RolePageObjectRepository rolePageObjectRepository;
 	private final EndpointRepository endpointRepository;
 	private final PageObjectRepository pageObjectRepository;
 
-	public InitialDataLoader(UserService userService, PageObjectRepository pageObjectRepository, EndpointRepository endpointRepository, RoleService roleService, RolePageObjectRepository rolePageObjectRepository, RoleEndpointRepository roleEndpointRepository)
+	public InitialDataLoader(UserService userService, PageObjectRepository pageObjectRepository, EndpointRepository endpointRepository, RoleService roleService)
 	{
 		this.userService = userService;
 		this.roleService = roleService;
-		this.roleEndpointRepository = roleEndpointRepository;
-		this.rolePageObjectRepository = rolePageObjectRepository;
 		this.endpointRepository = endpointRepository;
 		this.pageObjectRepository = pageObjectRepository;
 	}
@@ -39,8 +31,6 @@ public class InitialDataLoader implements CommandLineRunner
 	@Override
 	public void run(String... args) throws Exception
 	{
-		roleEndpointRepository.deleteAllInBatch();
-		rolePageObjectRepository.deleteAllInBatch();
 		endpointRepository.deleteAllInBatch();
 		pageObjectRepository.deleteAllInBatch();
 		userService.deleteAllInBatch();
@@ -79,17 +69,18 @@ public class InitialDataLoader implements CommandLineRunner
 		createUser("user2", "1234");
 		createUser("user3", "1234");
 		//-----------------------
-		grant(adminRole, epRoot);
-		grant(adminRole, epRoles);
-		grant(adminRole, epRolesToUser);
-		grant(adminRole, epRolesCreate);
-		grant(adminRole, epRolesDelete);
-		grant(adminRole, epRolePages);
-		grant(adminRole, epRolePagesCreate);
-		grant(adminRole, epRolePagesDelete);
-		grant(adminRole, epRolePageObjects);
-		grant(adminRole, epRolePageObjectsCreate);
-		grant(adminRole, epRolePageObjectsDelete);
+		adminRole.getEndpoints().add(epRoot);
+		adminRole.getEndpoints().add(epRoles);
+		adminRole.getEndpoints().add(epRolesToUser);
+		adminRole.getEndpoints().add(epRolesCreate);
+		adminRole.getEndpoints().add(epRolesDelete);
+		adminRole.getEndpoints().add(epRolePages);
+		adminRole.getEndpoints().add(epRolePagesCreate);
+		adminRole.getEndpoints().add(epRolePagesDelete);
+		adminRole.getEndpoints().add(epRolePageObjects);
+		adminRole.getEndpoints().add(epRolePageObjectsCreate);
+		adminRole.getEndpoints().add(epRolePageObjectsDelete);
+		roleService.save(adminRole);
 		// -------------------------
 		//		grant(workerRole, epMat);
 		//		grant(workerRole, epMatCreate);
@@ -171,21 +162,5 @@ public class InitialDataLoader implements CommandLineRunner
 			ep = endpointRepository.save(ep);
 		}
 		return ep;
-	}
-
-	private void grant(Role role, PageObject pageObject)
-	{
-		RolePageObject rp = new RolePageObject();
-		rp.setRole(role);
-		rp.setPageObject(pageObject);
-		rolePageObjectRepository.save(rp);
-	}
-
-	private void grant(Role role, Endpoint endpoint)
-	{
-		RoleEndpoint re = new RoleEndpoint();
-		re.setRole(role);
-		re.setEndpoint(endpoint);
-		roleEndpointRepository.save(re);
 	}
 }

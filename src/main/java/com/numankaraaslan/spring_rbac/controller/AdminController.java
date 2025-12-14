@@ -12,13 +12,9 @@ import org.springframework.web.servlet.ModelAndView;
 import com.numankaraaslan.spring_rbac.model.Endpoint;
 import com.numankaraaslan.spring_rbac.model.PageObject;
 import com.numankaraaslan.spring_rbac.model.Role;
-import com.numankaraaslan.spring_rbac.model.RoleEndpoint;
-import com.numankaraaslan.spring_rbac.model.RolePageObject;
 import com.numankaraaslan.spring_rbac.model.User;
 import com.numankaraaslan.spring_rbac.repo.EndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.PageObjectRepository;
-import com.numankaraaslan.spring_rbac.repo.RoleEndpointRepository;
-import com.numankaraaslan.spring_rbac.repo.RolePageObjectRepository;
 import com.numankaraaslan.spring_rbac.service.PermissionService;
 import com.numankaraaslan.spring_rbac.service.RoleService;
 import com.numankaraaslan.spring_rbac.service.UserService;
@@ -32,18 +28,14 @@ public class AdminController
 	private final EndpointRepository endpointRepo;
 	private final PageObjectRepository pageObjectRepo;
 	private final UserService userService;
-	private final RolePageObjectRepository rolePageObjectRepo;
-	private final RoleEndpointRepository roleEndpointRepo;
 	private final PermissionService permissionService;
 
-	public AdminController(RoleService roleService, UserService userService, RolePageObjectRepository rolePageObjectRepo, RoleEndpointRepository roleEndpointRepo, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, PermissionService permissionService)
+	public AdminController(RoleService roleService, UserService userService, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, PermissionService permissionService)
 	{
 		this.roleService = roleService;
 		this.endpointRepo = endpointRepo;
 		this.pageObjectRepo = pageObjectRepo;
 		this.userService = userService;
-		this.rolePageObjectRepo = rolePageObjectRepo;
-		this.roleEndpointRepo = roleEndpointRepo;
 		this.permissionService = permissionService;
 	}
 
@@ -62,10 +54,7 @@ public class AdminController
 	public ModelAndView assignRolesToUser(@RequestParam("username") String username, @RequestParam(value = "roleIds", required = false) List<UUID> roleIds)
 	{
 		String u = username == null ? "" : username.trim();
-		if (!u.isEmpty())
-		{
-			userService.assignRolesToUser(u, roleIds);
-		}
+		userService.assignRolesToUser(u, roleIds);
 		return new ModelAndView("redirect:/admin");
 	}
 
@@ -82,13 +71,10 @@ public class AdminController
 	public ModelAndView createRole(HttpServletRequest request, @RequestParam("name") String name)
 	{
 		String roleName = name == null ? "" : name.trim();
-		if (!roleName.isEmpty())
-		{
-			Role r = new Role();
-			r.setName(roleName);
-			roleService.save(r);
-			permissionService.invalidateAll(request);
-		}
+		Role r = new Role();
+		r.setName(roleName);
+		roleService.save(r);
+		permissionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/roles");
 	}
 
@@ -108,9 +94,7 @@ public class AdminController
 	{
 		ModelAndView mv = new ModelAndView("admin/role_pages");
 		List<Role> roleList = roleService.findAll();
-		List<RoleEndpoint> roleEndpointList = roleEndpointRepo.findAll();
 		mv.addObject("roleList", roleList);
-		mv.addObject("roleEndpointList", roleEndpointList);
 		mv.addObject("endpoints", endpointRepo.findAll());
 		return mv;
 	}
@@ -119,48 +103,24 @@ public class AdminController
 	public ModelAndView createRolePage(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "endpointNames", required = false) List<String> endpointNames)
 	{
 		String rn = roleName == null ? "" : roleName.trim();
-		if (rn.isEmpty())
-		{
-			return new ModelAndView("redirect:/admin/role-pages");
-		}
 		Role role = roleService.findByName(rn).orElse(null);
-		if (role == null)
+		for (int i = 0; i < endpointNames.size(); i++)
 		{
-			return new ModelAndView("redirect:/admin/role-pages");
+			Endpoint endpointEntity = endpointRepo.findByName(endpointNames.get(i)).get();
+			role.getEndpoints().add(endpointEntity);
+			roleService.save(role);
 		}
-		if (endpointNames != null)
-		{
-			for (int i = 0; i < endpointNames.size(); i++)
-			{
-				String raw = endpointNames.get(i);
-				String ep = raw == null ? "" : raw.trim();
-				if (ep.isEmpty())
-				{
-					continue;
-				}
-				Endpoint endpointEntity = endpointRepo.findByName(ep).orElse(null);
-				if (endpointEntity == null)
-				{
-					continue;
-				}
-				RoleEndpoint re = new RoleEndpoint();
-				re.setRole(role);
-				re.setEndpoint(endpointEntity);
-				roleEndpointRepo.save(re);
-			}
-			permissionService.invalidateAll(request);
-		}
+		permissionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
 
 	@PostMapping("/admin/role-pages/delete")
-	public ModelAndView deleteRolePage(HttpServletRequest request, @RequestParam("id") UUID id)
+	public ModelAndView deleteRolePage(HttpServletRequest request, @RequestParam("roleId") UUID roleId, @RequestParam("endpointId") UUID endpointId)
 	{
-		if (id != null)
-		{
-			roleEndpointRepo.deleteById(id);
-			permissionService.invalidateAll(request);
-		}
+		Role role = roleService.findById(roleId).get();
+		role.getEndpoints().removeIf(item -> item.getId().equals(endpointId));
+		roleService.save(role);
+		permissionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
 
@@ -169,9 +129,7 @@ public class AdminController
 	{
 		ModelAndView mv = new ModelAndView("admin/role_pageobjects");
 		List<Role> roleList = roleService.findAll();
-		List<RolePageObject> rolePageObjectList = rolePageObjectRepo.findAll();
 		mv.addObject("roleList", roleList);
-		mv.addObject("rolePageObjectList", rolePageObjectList);
 		mv.addObject("pageObjects", pageObjectRepo.findAll());
 		return mv;
 	}
@@ -180,49 +138,24 @@ public class AdminController
 	public ModelAndView createRolePageObject(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "pageObjectNames", required = false) List<String> pageObjectNames)
 	{
 		String rn = roleName == null ? "" : roleName.trim();
-		if (rn.isEmpty())
-		{
-			return new ModelAndView("redirect:/admin/role-pageobjects");
-		}
 		Role role = roleService.findByName(rn).orElse(null);
-		if (role == null)
+		for (int i = 0; i < pageObjectNames.size(); i++)
 		{
-			return new ModelAndView("redirect:/admin/role-pageobjects");
+			PageObject pageObj = pageObjectRepo.findByName(pageObjectNames.get(i)).get();
+			role.getPageObjects().add(pageObj);
+			roleService.save(role);
 		}
-		if (pageObjectNames != null)
-		{
-			for (int i = 0; i < pageObjectNames.size(); i++)
-			{
-				String raw = pageObjectNames.get(i);
-				String po = raw == null ? "" : raw.trim();
-				if (po.isEmpty())
-				{
-					continue;
-				}
-
-				PageObject pageObj = pageObjectRepo.findByName(po).orElse(null);
-				if (pageObj == null)
-				{
-					continue;
-				}
-				RolePageObject rpo = new RolePageObject();
-				rpo.setRole(role);
-				rpo.setPageObject(pageObj);
-				rolePageObjectRepo.save(rpo);
-			}
-			permissionService.invalidateAll(request);
-		}
+		permissionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
 
 	@PostMapping("/admin/role-pageobjects/delete")
-	public ModelAndView deleteRolePageObject(HttpServletRequest request, @RequestParam("id") UUID id)
+	public ModelAndView deleteRolePageObject(HttpServletRequest request, @RequestParam("roleId") UUID roleId, @RequestParam("pageobjectId") UUID pageobjectId)
 	{
-		if (id != null)
-		{
-			rolePageObjectRepo.deleteById(id);
-			permissionService.invalidateAll(request);
-		}
+		Role role = roleService.findById(roleId).get();
+		role.getPageObjects().removeIf(item -> item.getId().equals(pageobjectId));
+		roleService.save(role);
+		permissionService.invalidateAll(request);
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
 }

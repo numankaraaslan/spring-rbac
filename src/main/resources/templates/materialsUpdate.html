@@ -10,22 +10,18 @@
 		<div class="row min-vh-100">
 			<nav th:replace="~{block/sidebar :: sidebar}"></nav>
 			<main class="col-12 col-md-9 col-lg-10 p-4">
-				<h3 class="mb-4">Employees</h3>
-				<div class="card mb-4" th:if="${EMPLOYEE_CREATE}">
-					<div class="card-header">Create Employee</div>
+				<h3 class="mb-4">Update Material</h3>
+				<div class="card mb-4" th:if="${MATERIAL_UPDATE}">
 					<div class="card-body">
 						<form action="/materials/update" method="post" class="row g-3"
 							th:object="${material}">
-
 							<input type="hidden" th:name="${_csrf.parameterName}"
 								th:value="${_csrf.token}" /> <input type="hidden"
 								th:field="*{id}" />
-
 							<div class="col-md-6">
 								<label class="form-label">Name</label> <input type="text"
 									class="form-control" th:field="*{name}" required />
 							</div>
-
 							<div class="col-md-4">
 								<label class="form-label">Description</label> <input type="text"
 									class="form-control" th:field="*{description}" />
@@ -35,7 +31,6 @@
 								<button type="submit" class="btn btn-primary w-100">
 									Update</button>
 							</div>
-
 						</form>
 					</div>
 				</div>

@@ -3,7 +3,7 @@
 	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 <meta charset="UTF-8">
-<title>role - page objects</title>
+<title>Role - Page objects</title>
 <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
 <body>
 	<div class="container-fluid">
@@ -42,7 +42,6 @@
 						</form>
 					</div>
 				</div>
-
 				<div class="card">
 					<div class="card-header">Role - PageObject List</div>
 					<div class="card-body p-0">
@@ -56,35 +55,27 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="rp : ${rolePageObjectList}">
-									<td class="col-auto"><label th:text="${rp.role.name}"></label></td>
-									<td class="col-auto"><label
-										th:text="${rp.pageObject.name}"></label></td>
-									<td class="col-auto"><label
-										th:text="${rp.pageObject.description}"></label></td>
-									<td class="col-auto">
-										<form action="/admin/role-pageobjects/delete" method="post"
-											class="m-0">
-											<input type="hidden" th:name="${_csrf.parameterName}"
-												th:value="${_csrf.token}" /> <input type="hidden" name="id"
-												th:value="${rp.id}"> <input type="submit"
-												value="Delete" class="btn btn-outline-danger btn-sm">
-										</form>
-									</td>
-								</tr>
-
-								<tr
-									th:if="${rolePageObjectList == null || #lists.isEmpty(rolePageObjectList)}">
-									<td colspan="4" class="text-center p-3">No page object
-										mappings found.</td>
-								</tr>
+								<th:block th:each="role : ${roleList}">
+									<tr th:each="rp : ${role.pageObjects}">
+										<td th:text="${role.name}"></td>
+										<td th:text="${rp.name}"></td>
+										<td th:text="${rp.description}"></td>
+										<td>
+											<form action="/admin/role-pageobjects/delete" method="post">
+												<input type="hidden" th:name="${_csrf.parameterName}"
+													th:value="${_csrf.token}" /> <input type="hidden"
+													name="roleId" th:value="${role.id}" /> <input
+													type="hidden" name="pageobjectId" th:value="${rp.id}" />
+												<button class="btn btn-danger btn-sm">Delete</button>
+											</form>
+										</td>
+									</tr>
+								</th:block>
 							</tbody>
 						</table>
 					</div>
 				</div>
-
 			</main>
-
 		</div>
 	</div>
 	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>

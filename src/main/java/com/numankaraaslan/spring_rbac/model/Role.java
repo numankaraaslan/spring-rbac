@@ -7,12 +7,11 @@ import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,20 +27,20 @@ public class Role implements GrantedAuthority
 	@Column(name = "name", unique = true, nullable = false)
 	private String name;
 
-	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
-	private Set<RoleEndpoint> roleEndpoints = new HashSet<RoleEndpoint>();
+	@ManyToMany(fetch = FetchType.EAGER)
+	private Set<Endpoint> endpoints = new HashSet<Endpoint>();
 
-	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
-	private Set<RolePageObject> rolePageObjects = new HashSet<RolePageObject>();
+	@ManyToMany(fetch = FetchType.EAGER)
+	private Set<PageObject> pageObjects = new HashSet<PageObject>();
 
-	public Set<RoleEndpoint> getRoleEndpoints()
+	public Set<Endpoint> getEndpoints()
 	{
-		return roleEndpoints;
+		return endpoints;
 	}
 
-	public Set<RolePageObject> getRolePageObjects()
+	public Set<PageObject> getPageObjects()
 	{
-		return rolePageObjects;
+		return pageObjects;
 	}
 
 	public Role()
