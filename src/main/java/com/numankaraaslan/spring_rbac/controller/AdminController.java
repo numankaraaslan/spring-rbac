@@ -3,7 +3,6 @@ package com.numankaraaslan.spring_rbac.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +20,10 @@ import com.numankaraaslan.spring_rbac.repo.PageObjectRepository;
 import com.numankaraaslan.spring_rbac.repo.RoleEndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.RolePageObjectRepository;
 import com.numankaraaslan.spring_rbac.service.PermissionService;
-import com.numankaraaslan.spring_rbac.service.PermissionService;
 import com.numankaraaslan.spring_rbac.service.RoleService;
 import com.numankaraaslan.spring_rbac.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class AdminController
@@ -48,7 +48,7 @@ public class AdminController
 	}
 
 	@GetMapping(path = "/admin")
-	public ModelAndView adminPage(Authentication auth)
+	public ModelAndView adminPage()
 	{
 		ModelAndView mv = new ModelAndView("/admin/admin");
 		List<User> userList = userService.findAll();
@@ -79,7 +79,7 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/roles/create")
-	public ModelAndView createRole(@RequestParam("name") String name)
+	public ModelAndView createRole(HttpServletRequest request, @RequestParam("name") String name)
 	{
 		String roleName = name == null ? "" : name.trim();
 		if (!roleName.isEmpty())
@@ -91,18 +91,18 @@ public class AdminController
 			re.setRole(roleService.getRole(roleName));
 			re.setEndpoint(endpointRepo.findByName("/").get());
 			roleEndpointRepo.save(re);
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/roles");
 	}
 
 	@PostMapping("/admin/roles/delete")
-	public ModelAndView deleteRole(@RequestParam("id") UUID id)
+	public ModelAndView deleteRole(HttpServletRequest request, @RequestParam("id") UUID id)
 	{
 		if (id != null)
 		{
 			roleService.deleteById(id);
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/roles");
 	}
@@ -120,7 +120,7 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/role-pages/create")
-	public ModelAndView createRolePage(@RequestParam("roleName") String roleName, @RequestParam(value = "endpointNames", required = false) List<String> endpointNames)
+	public ModelAndView createRolePage(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "endpointNames", required = false) List<String> endpointNames)
 	{
 		String rn = roleName == null ? "" : roleName.trim();
 		if (rn.isEmpty())
@@ -152,18 +152,18 @@ public class AdminController
 				re.setEndpoint(endpointEntity);
 				roleEndpointRepo.save(re);
 			}
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
 
 	@PostMapping("/admin/role-pages/delete")
-	public ModelAndView deleteRolePage(@RequestParam("id") UUID id)
+	public ModelAndView deleteRolePage(HttpServletRequest request, @RequestParam("id") UUID id)
 	{
 		if (id != null)
 		{
 			roleEndpointRepo.deleteById(id);
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
@@ -181,7 +181,7 @@ public class AdminController
 	}
 
 	@PostMapping("/admin/role-pageobjects/create")
-	public ModelAndView createRolePageObject(@RequestParam("roleName") String roleName, @RequestParam(value = "pageObjectNames", required = false) List<String> pageObjectNames)
+	public ModelAndView createRolePageObject(HttpServletRequest request, @RequestParam("roleName") String roleName, @RequestParam(value = "pageObjectNames", required = false) List<String> pageObjectNames)
 	{
 		String rn = roleName == null ? "" : roleName.trim();
 		if (rn.isEmpty())
@@ -209,24 +209,23 @@ public class AdminController
 				{
 					continue;
 				}
-
 				RolePageObject rpo = new RolePageObject();
 				rpo.setRole(role);
 				rpo.setPageObject(pageObj);
 				rolePageObjectRepo.save(rpo);
 			}
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
 
 	@PostMapping("/admin/role-pageobjects/delete")
-	public ModelAndView deleteRolePageObject(@RequestParam("id") UUID id)
+	public ModelAndView deleteRolePageObject(HttpServletRequest request, @RequestParam("id") UUID id)
 	{
 		if (id != null)
 		{
 			rolePageObjectRepo.deleteById(id);
-			permissionService.invalidateAll();
+			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
