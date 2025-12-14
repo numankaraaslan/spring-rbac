@@ -40,7 +40,7 @@ public class SecurityConfig
 		http.sessionManagement(sm -> sm.maximumSessions(-1).sessionRegistry(sessionRegistry));
 		http.csrf(custom -> custom.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
 		http.headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; " + "script-src 'self'; " + "style-src 'self' 'unsafe-inline'; " + "img-src 'self' data:; " + "font-src 'self'; " + "connect-src 'self'; " + "frame-ancestors 'none'; " + "object-src 'none'")).xssProtection(_ -> Customizer.withDefaults()).frameOptions(frame -> frame.deny()).referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)));
-		http.authorizeHttpRequests(registry -> registry.requestMatchers("/authexception", "/login", "/logout", "/error", "/css/**", "/js/**").permitAll());
+		http.authorizeHttpRequests(registry -> registry.requestMatchers("/", "/wellcome", "/authexception", "/login", "/logout", "/error", "/css/**", "/js/**").permitAll());
 		http.authorizeHttpRequests(cus -> cus.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll());
 		// -------------------------------------------------------------
 		// Dynamic URL Authorization

@@ -34,4 +34,9 @@ public class MaterialService
 	{
 		materialRepository.deleteById(id);
 	}
+
+	public Material findById(UUID id)
+	{
+		return materialRepository.findById(id).get();
+	}
 }

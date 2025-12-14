@@ -3,9 +3,10 @@ package com.numankaraaslan.spring_rbac.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -27,8 +28,8 @@ public class MainController
 		this.employeeService = employeeService;
 	}
 
-	@GetMapping(path = { "", "/" })
-	public ModelAndView wellcomePage(Authentication auth)
+	@GetMapping(path = { "", "/", "wellcome" })
+	public ModelAndView wellcomePage()
 	{
 		ModelAndView mv = new ModelAndView("wellcome");
 		return mv;
@@ -41,33 +42,40 @@ public class MainController
 	}
 
 	@GetMapping("/materials")
-	public ModelAndView materialsPage(Authentication auth)
+	public ModelAndView materialsPage()
 	{
 		ModelAndView mv = new ModelAndView("materials");
 		List<Material> materialList = materialService.findAll();
 		mv.addObject("materialList", materialList);
+		mv.addObject(new Material());
 		return mv;
 	}
 
-	@PostMapping("/materials/create")
-	public ModelAndView createMaterial(Authentication auth, @RequestParam("name") String name, @RequestParam("description") String description)
+	@GetMapping("/materials/update/{id}")
+	public ModelAndView materialsUpdatePage(@PathVariable("id") UUID id)
 	{
-		String n = name == null ? "" : name.trim();
-		String d = description == null ? "" : description.trim();
+		ModelAndView mv = new ModelAndView("materialsUpdate");
+		Material empty = materialService.findById(id);
+		mv.addObject("material", empty);
+		return mv;
+	}
 
-		if (!n.isEmpty())
-		{
-			Material m = new Material();
-			m.setName(n);
-			m.setDescription(d);
-			materialService.save(m);
-		}
+	@PostMapping("/materials/update")
+	public ModelAndView materialsUpdatePage(@ModelAttribute Material material)
+	{
+		materialService.save(material);
+		return new ModelAndView("redirect:/materials");
+	}
 
+	@PostMapping("/materials/create")
+	public ModelAndView createMaterial(@ModelAttribute Material material)
+	{
+		materialService.save(material);
 		return new ModelAndView("redirect:/materials");
 	}
 
 	@PostMapping("/materials/delete")
-	public ModelAndView deleteMaterial(Authentication auth, @RequestParam("id") UUID id)
+	public ModelAndView deleteMaterial(@RequestParam("id") UUID id)
 	{
 		if (id != null)
 		{
@@ -78,33 +86,40 @@ public class MainController
 	}
 
 	@GetMapping("/employees")
-	public ModelAndView employeesPage(Authentication auth)
+	public ModelAndView employeesPage()
 	{
 		ModelAndView mv = new ModelAndView("employees");
 		List<Employee> employeeList = employeeService.findAll();
 		mv.addObject("employeeList", employeeList);
+		mv.addObject(new Employee());
 		return mv;
 	}
 
-	@PostMapping("/employees/create")
-	public ModelAndView createEmployee(Authentication auth, @RequestParam("socialSecurityNo") String socialSecurityNo, @RequestParam("name") String name)
+	@GetMapping("/employees/update/{id}")
+	public ModelAndView employeesUpdatePage(@PathVariable("id") UUID id)
 	{
-		String ssn = socialSecurityNo == null ? "" : socialSecurityNo.trim();
-		String n = name == null ? "" : name.trim();
+		ModelAndView mv = new ModelAndView("employeesUpdate");
+		Employee empty = employeeService.findById(id);
+		mv.addObject("employee", empty);
+		return mv;
+	}
 
-		if (!ssn.isEmpty() && !n.isEmpty())
-		{
-			Employee e = new Employee();
-			e.setSocialSecurityNo(ssn);
-			e.setName(n);
-			employeeService.save(e);
-		}
+	@PostMapping("/employees/update")
+	public ModelAndView employeesUpdatePage(@ModelAttribute Employee employee)
+	{
+		employeeService.save(employee);
+		return new ModelAndView("redirect:/employees");
+	}
 
+	@PostMapping("/employees/create")
+	public ModelAndView createEmployee(@ModelAttribute Employee employee)
+	{
+		employeeService.save(employee);
 		return new ModelAndView("redirect:/employees");
 	}
 
 	@PostMapping("/employees/delete")
-	public ModelAndView deleteEmployee(Authentication auth, @RequestParam("id") UUID id)
+	public ModelAndView deleteEmployee(@RequestParam("id") UUID id)
 	{
 		if (id != null)
 		{

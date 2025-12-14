@@ -3,6 +3,8 @@ package com.numankaraaslan.spring_rbac.dto;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.util.AntPathMatcher;
+
 public class AuthPrincipal
 {
 	private final UUID userId;
@@ -49,9 +51,28 @@ public class AuthPrincipal
 		return allowedPageObjects;
 	}
 
-	public boolean canAccessEndpoint(String endpoint)
+	public boolean canAccessEndpoint(String requestUri)
 	{
-		return endpoint != null && allowedEndpoints.contains(endpoint);
+		String path = normalize(requestUri);
+		for (String pattern : allowedEndpoints)
+		{
+			if (new AntPathMatcher().match(normalize(pattern), path))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private String normalize(String s)
+	{
+		if (s == null)
+			return "";
+		int q = s.indexOf('?');
+		String out = (q >= 0) ? s.substring(0, q) : s;
+		if (out.length() > 1 && out.endsWith("/"))
+			out = out.substring(0, out.length() - 1);
+		return out;
 	}
 
 	public boolean canAccessPageObject(String key)

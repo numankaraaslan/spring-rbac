@@ -24,10 +24,10 @@
 		</div>
 
 		<div class="mt-auto pt-3 pb-3 px-3 border-top border-secondary">
-			<a class="btn btn-sm btn-outline-light w-100" th:href="@{/logout}"
-				sec:authorize="isAuthenticated()"> Çıkış </a> <a
-				class="btn btn-sm btn-outline-light w-100 mt-2" th:href="@{/login}"
-				sec:authorize="!isAuthenticated()"> Giriş </a>
+			<a class="btn btn-sm btn-outline-light w-100" href="/logout"
+				sec:authorize="isAuthenticated()"> Logout </a> <a
+				class="btn btn-sm btn-outline-light w-100 mt-2" href="/login"
+				sec:authorize="!isAuthenticated()"> Login </a>
 		</div>
 	</div>
 </nav>

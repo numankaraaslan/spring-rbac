@@ -87,10 +87,6 @@ public class AdminController
 			Role r = new Role();
 			r.setName(roleName);
 			roleService.save(r);
-			RoleEndpoint re = new RoleEndpoint();
-			re.setRole(roleService.getRole(roleName));
-			re.setEndpoint(endpointRepo.findByName("/").get());
-			roleEndpointRepo.save(re);
 			permissionService.invalidateAll(request);
 		}
 		return new ModelAndView("redirect:/admin/roles");

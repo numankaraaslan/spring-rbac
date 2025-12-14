@@ -93,10 +93,7 @@ public class UserService implements UserDetailsService
 		{
 			return;
 		}
-
-		// FULL REPLACE
 		user.getRoles().clear();
-
 		if (roleIds != null)
 		{
 			Set<UUID> uniqueIds = new HashSet<UUID>(roleIds);

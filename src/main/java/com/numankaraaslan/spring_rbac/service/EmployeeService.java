@@ -34,4 +34,9 @@ public class EmployeeService
 	{
 		employeeRepository.deleteById(id);
 	}
+
+	public Employee findById(UUID id)
+	{
+		return employeeRepository.findById(id).get();
+	}
 }
