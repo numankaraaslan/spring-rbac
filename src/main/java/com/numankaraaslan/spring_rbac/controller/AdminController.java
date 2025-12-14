@@ -20,9 +20,10 @@ import com.numankaraaslan.spring_rbac.repo.EndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.PageObjectRepository;
 import com.numankaraaslan.spring_rbac.repo.RoleEndpointRepository;
 import com.numankaraaslan.spring_rbac.repo.RolePageObjectRepository;
+import com.numankaraaslan.spring_rbac.service.PermissionService;
+import com.numankaraaslan.spring_rbac.service.PermissionService;
 import com.numankaraaslan.spring_rbac.service.RoleService;
 import com.numankaraaslan.spring_rbac.service.UserService;
-import com.numankaraaslan.spring_rbac.util.DbAuthorizationManager;
 
 @Controller
 public class AdminController
@@ -33,9 +34,9 @@ public class AdminController
 	private final UserService userService;
 	private final RolePageObjectRepository rolePageObjectRepo;
 	private final RoleEndpointRepository roleEndpointRepo;
-	private final DbAuthorizationManager authz;
+	private final PermissionService permissionService;
 
-	public AdminController(RoleService roleService, UserService userService, RolePageObjectRepository rolePageObjectRepo, RoleEndpointRepository roleEndpointRepo, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, DbAuthorizationManager authz)
+	public AdminController(RoleService roleService, UserService userService, RolePageObjectRepository rolePageObjectRepo, RoleEndpointRepository roleEndpointRepo, EndpointRepository endpointRepo, PageObjectRepository pageObjectRepo, PermissionService permissionService)
 	{
 		this.roleService = roleService;
 		this.endpointRepo = endpointRepo;
@@ -43,7 +44,7 @@ public class AdminController
 		this.userService = userService;
 		this.rolePageObjectRepo = rolePageObjectRepo;
 		this.roleEndpointRepo = roleEndpointRepo;
-		this.authz = authz;
+		this.permissionService = permissionService;
 	}
 
 	@GetMapping(path = "/admin")
@@ -90,7 +91,7 @@ public class AdminController
 			re.setRole(roleService.getRole(roleName));
 			re.setEndpoint(endpointRepo.findByName("/").get());
 			roleEndpointRepo.save(re);
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/roles");
 	}
@@ -101,7 +102,7 @@ public class AdminController
 		if (id != null)
 		{
 			roleService.deleteById(id);
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/roles");
 	}
@@ -151,7 +152,7 @@ public class AdminController
 				re.setEndpoint(endpointEntity);
 				roleEndpointRepo.save(re);
 			}
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
@@ -162,7 +163,7 @@ public class AdminController
 		if (id != null)
 		{
 			roleEndpointRepo.deleteById(id);
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/role-pages");
 	}
@@ -214,7 +215,7 @@ public class AdminController
 				rpo.setPageObject(pageObj);
 				rolePageObjectRepo.save(rpo);
 			}
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}
@@ -225,7 +226,7 @@ public class AdminController
 		if (id != null)
 		{
 			rolePageObjectRepo.deleteById(id);
-			authz.clearCaches();
+			permissionService.invalidateAll();
 		}
 		return new ModelAndView("redirect:/admin/role-pageobjects");
 	}

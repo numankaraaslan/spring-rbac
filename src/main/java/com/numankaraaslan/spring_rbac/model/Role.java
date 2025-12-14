@@ -5,12 +5,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -28,10 +28,10 @@ public class Role implements GrantedAuthority
 	@Column(name = "name", unique = true, nullable = false)
 	private String name;
 
-	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
 	private Set<RoleEndpoint> roleEndpoints = new HashSet<RoleEndpoint>();
 
-	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	@OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
 	private Set<RolePageObject> rolePageObjects = new HashSet<RolePageObject>();
 
 	public Set<RoleEndpoint> getRoleEndpoints()
@@ -69,7 +69,7 @@ public class Role implements GrantedAuthority
 	}
 
 	@Override
-	public @Nullable String getAuthority()
+	public String getAuthority()
 	{
 		return name;
 	}

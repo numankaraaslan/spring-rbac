@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import com.numankaraaslan.spring_rbac.util.DbAuthorizationManager;
+import com.numankaraaslan.spring_rbac.service.PermissionService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,23 +13,26 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class DbRedirectSuccessHandler implements AuthenticationSuccessHandler
 {
-	private final DbAuthorizationManager dbAuthManager;
+	private final PermissionService permissionService;
 
-	public DbRedirectSuccessHandler(DbAuthorizationManager dbAuthManager)
+	public DbRedirectSuccessHandler(PermissionService permissionService)
 	{
-		this.dbAuthManager = dbAuthManager;
+		this.permissionService = permissionService;
 	}
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException
 	{
-		if (dbAuthManager.canAccessEndpoint(authentication, "/admin"))
+		// Optional: contextPath-safe redirect
+		String ctx = request.getContextPath();
+
+		if (permissionService.canAccessEndpoint(authentication, "/admin"))
 		{
-			response.sendRedirect("/admin");
+			response.sendRedirect(ctx + "/admin");
 		}
 		else
 		{
-			response.sendRedirect("/");
+			response.sendRedirect(ctx + "/");
 		}
 	}
 }

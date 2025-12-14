@@ -13,7 +13,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
-import com.numankaraaslan.spring_rbac.util.DbAuthorizationManager;
+import com.numankaraaslan.spring_rbac.service.PermissionService;
+import com.numankaraaslan.spring_rbac.service.DbRbacAuthenticationProvider;
+import com.numankaraaslan.spring_rbac.util.CustomAuthorizationManager;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,11 +24,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 public class SecurityConfig
 {
-	private final DbAuthorizationManager dbAuthManager;
+	private final CustomAuthorizationManager customAuthManager;
+	private final PermissionService permissionService;
+	private final DbRbacAuthenticationProvider dbRbacAuthenticationProvider;
 
-	public SecurityConfig(DbAuthorizationManager dbAuthManager)
+	public SecurityConfig(CustomAuthorizationManager dbAuthManager, PermissionService permissionService, DbRbacAuthenticationProvider dbRbacAuthenticationProvider)
 	{
-		this.dbAuthManager = dbAuthManager;
+		this.customAuthManager = dbAuthManager;
+		this.permissionService = permissionService;
+		this.dbRbacAuthenticationProvider = dbRbacAuthenticationProvider;
 	}
 
 	@Bean
@@ -41,7 +47,8 @@ public class SecurityConfig
 		// -------------------------------------------------------------
 		http.authorizeHttpRequests(registry -> registry.requestMatchers("/authexception", "/login", "/logout", "/error", "/css/**", "/js/**").permitAll());
 		http.authorizeHttpRequests(cus -> cus.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll());
-		http.authorizeHttpRequests(reg -> reg.anyRequest().access(this.dbAuthManager));
+		http.authorizeHttpRequests(reg -> reg.anyRequest().access(this.customAuthManager));
+		http.authenticationProvider(dbRbacAuthenticationProvider);
 		http.exceptionHandling(ex -> ex.accessDeniedHandler(new AccessDeniedHandler()
 		{
 			@Override
@@ -50,7 +57,7 @@ public class SecurityConfig
 				response.sendRedirect(request.getContextPath() + "/authexception");
 			}
 		}));
-		http.formLogin(login -> login.successHandler(new DbRedirectSuccessHandler(dbAuthManager)));
+		http.formLogin(login -> login.successHandler(new DbRedirectSuccessHandler(permissionService)));
 		return http.build();
 	}
 }
