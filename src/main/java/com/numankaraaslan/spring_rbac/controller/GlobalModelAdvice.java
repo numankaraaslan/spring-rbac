@@ -29,7 +29,8 @@ public class GlobalModelAdvice
 		model.addAttribute("canSee_RolePageObjects", permissionService.canAccessEndpoint(auth, "/admin/role-pageobjects"));
 		model.addAttribute("canSee_MaterialsPage", permissionService.canAccessEndpoint(auth, "/materials"));
 		model.addAttribute("canSee_EmployeesPage", permissionService.canAccessEndpoint(auth, "/employees"));
-		// these will be populated huge
+		// these will be populated huge in the future
+		// only alternative is using some spel in thymeleaf and use permissionservice bean
 		model.addAttribute("MATERIAL_CREATE", permissionService.canAccessPageObject(auth, "MATERIAL_CREATE"));
 		model.addAttribute("MATERIAL_DELETE", permissionService.canAccessPageObject(auth, "MATERIAL_DELETE"));
 		model.addAttribute("MATERIAL_UPDATE", permissionService.canAccessPageObject(auth, "MATERIAL_UPDATE"));
